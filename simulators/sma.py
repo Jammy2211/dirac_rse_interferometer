@@ -52,7 +52,7 @@ much high resolution datasets (which can be performed by replacing "sma.fits" be
 """
 uv_wavelengths_path = path.join("dataset", "sma")
 uv_wavelengths = al.util.array_1d.numpy_array_1d_via_fits_from(
-    file_path=path.join(uv_wavelengths_path, dataset_instrument), hdu=0
+    file_path=path.join(uv_wavelengths_path, "data.fits"), hdu=0
 )
 
 """
