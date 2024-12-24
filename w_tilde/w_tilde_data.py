@@ -58,6 +58,8 @@ def w_tilde_data_interferometer_from(
         A matrix that encodes the PSF convolution values between the imaging divided by the noise map**2 that enables
         efficient calculation of the data vector.
     """
+    g_i = grid_radians_slim.reshape(-1, 1, 2)
+    u_j = uv_wavelengths.reshape(1, -1, 2)
     return (
         # (1, j∊N)
         jnp.square(jnp.square(noise_map_real) / visibilities_real).reshape(1, -1) *
@@ -65,14 +67,11 @@ def w_tilde_data_interferometer_from(
             (2.0 * jnp.pi) *
             # (i∊M, j∊N)
             (
-                # (i∊M, 1, 2)
-                jnp.flip(grid_radians_slim.reshape(-1, 1, 2), 2) *
-                # (1, j∊N, 2)
-                uv_wavelengths.reshape(1, -1, 2)
-            ).sum(axis=2)
+                g_i[:, :, 0] * u_j[:, :, 1] +
+                g_i[:, :, 1] * u_j[:, :, 0]
+            )
         )
     ).sum(axis=1)  # sum over j
-
 
 
 """
