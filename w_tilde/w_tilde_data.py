@@ -38,6 +38,9 @@ def w_tilde_data_interferometer_from(
         @jit("float64[::1](float64[::1], float64[::1], float64[:,::1], float64[:,::1], int64[:,::1])", nopython=True, nogil=True, parallel=True)
     but numba doesn't like the combination of flip and reshape there.
 
+    .. math::
+        \tilde{w}_{\text{data},i} = \sum_{j=1}^N \left(\frac{N_{r,j}^2}{V_{r,j}}\right)^2 \cos\left(2\pi(g_{i,1}u_{j,0} + g_{i,0}u_{j,1})\right)
+
     Parameters
     ----------
     visibilities_real : ndarray, shape (N,), dtype=float64
