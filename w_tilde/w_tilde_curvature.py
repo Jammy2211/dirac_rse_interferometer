@@ -48,22 +48,18 @@ def w_tilde_curvature_interferometer_from(
         A matrix that encodes the NUFFT values between the noise map that enables efficient calculation of the curvature
         matrix.
     """
+    # (i∊M, j∊M, 1, 2)
+    g_ij =  grid_radians_slim.reshape(-1, 1, 1, 2) - grid_radians_slim.reshape(1, -1, 1, 2)
+    # (1, 1, k∊N, 2)
+    u_k = uv_wavelengths.reshape(1, 1, -1, 2)
     return (
         jnp.cos(
             (2.0 * jnp.pi) *
             # (M, M, N)
             (
-                (
-                    # (i∊M, 1, 1, 2)
-                    grid_radians_slim.reshape(-1, 1, 1, 2) -
-                    # (1, j∊M, 1, 2)
-                    grid_radians_slim.reshape(1, -1, 1, 2)
-                ) * np.flip(
-                    # (1, 1, k∊N, 2)
-                    uv_wavelengths.reshape(1, 1, -1, 2),
-                    3,
-                )
-            ).sum(3)
+                g_ij[:, :, :, 0] * u_k[:, :, :, 1] +
+                g_ij[:, :, :, 1] * u_k[:, :, :, 0]
+            )
         ) /
         # (1, 1, k∊N)
         jnp.square(noise_map_real).reshape(1, 1, -1)
