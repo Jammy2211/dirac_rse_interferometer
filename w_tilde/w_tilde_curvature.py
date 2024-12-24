@@ -1,17 +1,22 @@
+from __future__ import annotations
+
 import numpy as np
 from os import path
+
+from jax import jit
+import jax.numpy as jnp
 
 from autoarray import numba_util
 
 import autolens as al
 
 
-@numba_util.jit()
+@jit
 def w_tilde_curvature_interferometer_from(
-    noise_map_real: np.ndarray,
-    uv_wavelengths: np.ndarray,
-    grid_radians_slim: np.ndarray,
-) -> np.ndarray:
+    noise_map_real: np.ndarray[tuple[int], np.float64],
+    uv_wavelengths: np.ndarray[tuple[int, int], np.float64],
+    grid_radians_slim: np.ndarray[tuple[int, int], np.float64],
+) -> np.ndarray[tuple[int, int], np.float64]:
     """
     The matrix w_tilde is a matrix of dimensions [image_pixels, image_pixels] that encodes the NUFFT of every pair of
     image pixels given the noise map. This can be used to efficiently compute the curvature matrix via the mappings
@@ -23,48 +28,46 @@ def w_tilde_curvature_interferometer_from(
     `w_tilde_preload_interferometer_from` describes a compressed representation that overcomes this hurdles. It is
     advised `w_tilde` and this method are only used for testing.
 
+    .. math::
+        W̃_{ij} = \sum_{k=1}^N \frac{1}{n_k^2} \cos(2\pi[(g_{i1} - g_{j1})u_{k0} + (g_{i0} - g_{j0})u_{k1}])
+
     Parameters
     ----------
-    noise_map_real
+    noise_map_real : ndarray, shape (N,), dtype=float64
         The real noise-map values of the interferometer data.
-    uv_wavelengths
+    uv_wavelengths : ndarray, shape (N, 2), dtype=float64
         The wavelengths of the coordinates in the uv-plane for the interferometer dataset that is to be Fourier
         transformed.
-    grid_radians_slim
+    grid_radians_slim : ndarray, shape (M, 2), dtype=float64
         The 1D (y,x) grid of coordinates in radians corresponding to real-space mask within which the image that is
         Fourier transformed is computed.
 
     Returns
     -------
-    ndarray
+    ndarray : ndarray, shape (M, M), dtype=float64
         A matrix that encodes the NUFFT values between the noise map that enables efficient calculation of the curvature
         matrix.
     """
-
-    w_tilde = np.zeros((grid_radians_slim.shape[0], grid_radians_slim.shape[0]))
-
-    for i in range(w_tilde.shape[0]):
-        for j in range(i, w_tilde.shape[1]):
-            y_offset = grid_radians_slim[i, 1] - grid_radians_slim[j, 1]
-            x_offset = grid_radians_slim[i, 0] - grid_radians_slim[j, 0]
-
-            for vis_1d_index in range(uv_wavelengths.shape[0]):
-                w_tilde[i, j] += noise_map_real[vis_1d_index] ** -2.0 * np.cos(
-                    2.0
-                    * np.pi
-                    * (
-                        y_offset * uv_wavelengths[vis_1d_index, 0]
-                        + x_offset * uv_wavelengths[vis_1d_index, 1]
-                    )
+    return (
+        jnp.cos(
+            (2.0 * jnp.pi) *
+            # (M, M, N)
+            (
+                (
+                    # (i∊M, 1, 1, 2)
+                    grid_radians_slim.reshape(-1, 1, 1, 2) -
+                    # (1, j∊M, 1, 2)
+                    grid_radians_slim.reshape(1, -1, 1, 2)
+                ) * np.flip(
+                    # (1, 1, k∊N, 2)
+                    uv_wavelengths.reshape(1, 1, -1, 2),
+                    3,
                 )
-
-    for i in range(w_tilde.shape[0]):
-        for j in range(i, w_tilde.shape[1]):
-            w_tilde[j, i] = w_tilde[i, j]
-
-    return w_tilde
-
-
+            ).sum(3)
+        ) /
+        # (1, 1, k∊N)
+        jnp.square(noise_map_real).reshape(1, 1, -1)
+    ).sum(2)  # sum over k
 
 
 """
@@ -121,8 +124,4 @@ w_tilde = w_tilde_curvature_interferometer_from(
     uv_wavelengths=np.array(dataset.uv_wavelengths),
     grid_radians_slim=np.array(dataset.grid.in_radians),
 )
-
-print(w_tilde)
-
-
 
