@@ -98,7 +98,7 @@ more complicated and so for now we will compute them outside of JAX using the fu
 to them later.
 """
 mapping_matrix = inversion.mapping_matrix
-mapper = inversion.cls_list_from(cls=al.AbstractMapper)
+mapper = inversion.cls_list_from(cls=al.AbstractMapper)[0]
 
 print(mapping_matrix)
 
