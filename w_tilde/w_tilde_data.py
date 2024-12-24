@@ -59,19 +59,19 @@ def w_tilde_data_interferometer_from(
         efficient calculation of the data vector.
     """
     return (
-        # (1, N)
+        # (1, j∊N)
         jnp.square(jnp.square(noise_map_real) / visibilities_real).reshape(1, -1) *
         jnp.cos(
             (2.0 * jnp.pi) *
-            # (M, N)
+            # (i∊M, j∊N)
             (
-                # (M, 1, 2)
+                # (i∊M, 1, 2)
                 jnp.flip(grid_radians_slim.reshape(-1, 1, 2), 2) *
-                # (1, N, 2)
+                # (1, j∊N, 2)
                 uv_wavelengths.reshape(1, -1, 2)
             ).sum(axis=2)
         )
-    ).sum(axis=1)
+    ).sum(axis=1)  # sum over j
 
 
 
