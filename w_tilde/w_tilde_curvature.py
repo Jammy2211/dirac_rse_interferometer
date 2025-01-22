@@ -41,18 +41,18 @@ def w_tilde_curvature_interferometer_from(
 
     Parameters
     ----------
-    noise_map_real : ndarray, shape (N,), dtype=float64
+    noise_map_real
         The real noise-map values of the interferometer data.
-    uv_wavelengths : ndarray, shape (N, 2), dtype=float64
+    uv_wavelengths
         The wavelengths of the coordinates in the uv-plane for the interferometer dataset that is to be Fourier
         transformed.
-    grid_radians_slim : ndarray, shape (M, 2), dtype=float64
+    grid_radians_slim
         The 1D (y,x) grid of coordinates in radians corresponding to real-space mask within which the image that is
         Fourier transformed is computed.
 
     Returns
     -------
-    ndarray : ndarray, shape (M, M), dtype=float64
+    ndarray
         A matrix that encodes the NUFFT values between the noise map that enables efficient calculation of the curvature
         matrix.
     """
