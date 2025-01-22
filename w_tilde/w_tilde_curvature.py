@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 from os import path
 
@@ -10,13 +12,16 @@ from autoarray import numba_util
 
 import autolens as al
 
+if TYPE_CHECKING:
+    from typing import Tuple
+
 
 @jit
 def w_tilde_curvature_interferometer_from(
-    noise_map_real: np.ndarray[tuple[int], np.float64],
-    uv_wavelengths: np.ndarray[tuple[int, int], np.float64],
-    grid_radians_slim: np.ndarray[tuple[int, int], np.float64],
-) -> np.ndarray[tuple[int, int], np.float64]:
+    noise_map_real: np.ndarray[Tuple[int], np.float64],
+    uv_wavelengths: np.ndarray[Tuple[int, int], np.float64],
+    grid_radians_slim: np.ndarray[Tuple[int, int], np.float64],
+) -> np.ndarray[Tuple[int, int], np.float64]:
     """
     The matrix w_tilde is a matrix of dimensions [image_pixels, image_pixels] that encodes the NUFFT of every pair of
     image pixels given the noise map. This can be used to efficiently compute the curvature matrix via the mappings
