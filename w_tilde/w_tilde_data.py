@@ -44,18 +44,17 @@ def w_tilde_data_interferometer_from(
 
     Parameters
     ----------
-    visibilities_real : ndarray, shape (N,), dtype=float64
+    visibilities_real
         The two dimensional masked image of values which `w_tilde_data` is computed from.
-    noise_map_real : ndarray, shape (N,), dtype=float64
+    noise_map_real
         The two dimensional masked noise-map of values which `w_tilde_data` is computed from.
-    uv_wavelengths : ndarray, shape (N, 2), dtype=float64
-    grid_radians_slim : ndarray, shape (M, 2), dtype=float64
-    native_index_for_slim_index : ndarray, shape (M, 2), dtype=int64
+    uv_wavelengths
+    grid_radians_slim
+    native_index_for_slim_index
         An array that maps pixels from the slimmed array to the native array.
 
     Returns
     -------
-    ndarray, shape (M,), dtype=float64
         A matrix that encodes the PSF convolution values between the imaging divided by the noise map**2 that enables
         efficient calculation of the data vector.
     """
