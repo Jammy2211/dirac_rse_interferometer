@@ -1,19 +1,29 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
 from os import path
+
+from jax import jit
+import jax.numpy as jnp
 
 from autoarray import numba_util
 
 import autolens as al
 
+if TYPE_CHECKING:
+    from typing import Tuple
 
-@numba_util.jit()
+
+@jit
 def w_tilde_data_interferometer_from(
-    visibilities_real: np.ndarray,
-    noise_map_real: np.ndarray,
-    uv_wavelengths: np.ndarray,
-    grid_radians_slim: np.ndarray,
-    native_index_for_slim_index,
-) -> np.ndarray:
+    visibilities_real: np.ndarray[Tuple[int], np.float64],
+    noise_map_real: np.ndarray[Tuple[int], np.float64],
+    uv_wavelengths: np.ndarray[Tuple[int, int], np.float64],
+    grid_radians_slim: np.ndarray[Tuple[int, int], np.float64],
+    native_index_for_slim_index: np.ndarray[Tuple[int, int], np.int64],
+) -> np.ndarray[Tuple[int], np.float64]:
     """
     The matrix w_tilde is a matrix of dimensions [image_pixels, image_pixels] that encodes the PSF convolution of
     every pair of image pixels given the noise map. This can be used to efficiently compute the curvature matrix via
@@ -29,50 +39,39 @@ def w_tilde_data_interferometer_from(
 
     weight = image / noise**2.0
 
+    .. math::
+        \tilde{w}_{\text{data},i} = \sum_{j=1}^N \left(\frac{N_{r,j}^2}{V_{r,j}}\right)^2 \cos\left(2\pi(g_{i,1}u_{j,0} + g_{i,0}u_{j,1})\right)
+
     Parameters
     ----------
-    image_native
+    visibilities_real
         The two dimensional masked image of values which `w_tilde_data` is computed from.
-    noise_map_native
+    noise_map_real
         The two dimensional masked noise-map of values which `w_tilde_data` is computed from.
-    kernel_native
-        The two dimensional PSF kernel that `w_tilde_data` encodes the convolution of.
+    uv_wavelengths
+    grid_radians_slim
     native_index_for_slim_index
-        An array of shape [total_x_pixels*sub_size] that maps pixels from the slimmed array to the native array.
+        An array that maps pixels from the slimmed array to the native array.
 
     Returns
     -------
-    ndarray
         A matrix that encodes the PSF convolution values between the imaging divided by the noise map**2 that enables
         efficient calculation of the data vector.
     """
-
-    image_pixels = len(native_index_for_slim_index)
-
-    w_tilde_data = np.zeros(image_pixels)
-
-    weight_map_real = visibilities_real / noise_map_real**2.0
-
-    for ip0 in range(image_pixels):
-        value = 0.0
-
-        y = grid_radians_slim[ip0, 1]
-        x = grid_radians_slim[ip0, 0]
-
-        for vis_1d_index in range(uv_wavelengths.shape[0]):
-            value += weight_map_real[vis_1d_index] ** -2.0 * np.cos(
-                2.0
-                * np.pi
-                * (
-                    y * uv_wavelengths[vis_1d_index, 0]
-                    + x * uv_wavelengths[vis_1d_index, 1]
-                )
+    g_i = grid_radians_slim.reshape(-1, 1, 2)
+    u_j = uv_wavelengths.reshape(1, -1, 2)
+    return (
+        # (1, j∊N)
+        jnp.square(jnp.square(noise_map_real) / visibilities_real).reshape(1, -1) *
+        jnp.cos(
+            (2.0 * jnp.pi) *
+            # (i∊M, j∊N)
+            (
+                g_i[:, :, 0] * u_j[:, :, 1] +
+                g_i[:, :, 1] * u_j[:, :, 0]
             )
-
-        w_tilde_data[ip0] = value
-
-    return w_tilde_data
-
+        )
+    ).sum(axis=1)  # sum over j
 
 
 """

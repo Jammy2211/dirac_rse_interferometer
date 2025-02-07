@@ -129,13 +129,13 @@ https://github.com/Jammy2211/PyAutoArray/blob/main/autoarray/inversion/inversion
 
 This uses the `w_tilde` matrix your previous task converted to JAX.
 """
-w_tilde = dataset.w_tilde
+w_tilde = dataset.w_tilde.w_matrix
 
 curvature_matrix = likelihood_function_funcs.curvature_matrix_via_w_tilde_from(
     w_tilde=w_tilde, mapping_matrix=mapping_matrix
 )
 
-"""
+r"""
 __JAX Function 3__
 
 A regularization matrix is next applied to the `curvature_matrix`, the calculation of which requires JAX-ifying.
@@ -241,7 +241,7 @@ chi_squared_term_3 = np.add(# NOTE: i.e. noise_normalization
     np.sum(dataset.data.imag**2.0 / dataset.noise_map.imag**2.0),
 )
 
-"""
+r"""
 __JAX Function 7__
 
 The second term, $s^{T} H s$, corresponds to the $\lambda $G_{\rm L}$ regularization term we added to our merit 
@@ -260,7 +260,7 @@ regularization_term = np.matmul(
 
 print(regularization_term)
 
-"""
+r"""
 __JAX Function 8__
 
 Up to this point, it is unclear why we chose a value of `regularization_coefficient=1.0`. 
