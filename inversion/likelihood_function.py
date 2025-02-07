@@ -1,7 +1,7 @@
 import numpy as np
 from os import path
 
-from . import likelihood_function_funcs
+import likelihood_function_funcs
 
 import autolens as al
 
@@ -27,7 +27,7 @@ We load an example interferometer dataset which will be used to help us develop 
 """
 dataset_type = "sma"
 
-dataset_path = path.join("dataset", dataset_type)
+dataset_path = path.join("..", "dataset", dataset_type)
 
 dataset = al.Interferometer.from_fits(
     data_path=path.join(dataset_path, "data.fits"),
@@ -223,19 +223,23 @@ These all need to be JAX-ified and profiled to understand how they scale with JA
 
 They look simple to JAX-ify -- they just use `np.multiply` and `np.dot` which are natively supported by JAX.
 """
-# NOTE:
 chi_squared_term_1 = np.linalg.multi_dot(
     [
-        mapping_matrix,  # NOTE: shape = (N, )
-        w_tilde,  # NOTE: shape = (N, N)
-        mapping_matrix,
+        reconstruction.T, # NOTE: shape = (M, )
+        curvature_matrix, # NOTE: shape = (M, M)
+        reconstruction, # NOTE: shape = (M, )
     ]
 )
-
-# NOTE:
-chi_squared_term_2 = -np.multiply(2.0, np.dot(mapping_matrix, dirty_image)) # Need to double check dirty_image is the right input.
-
-chi_squared = chi_squared_term_1 + chi_squared_term_2
+chi_squared_term_2 = -2.0 * np.linalg.multi_dot(
+    [
+        reconstruction.T, # NOTE: shape = (M, )
+        inversion.data_vector # NOTE: i.e. dirty_image
+    ]
+)
+chi_squared_term_3 = np.add(# NOTE: i.e. noise_normalization
+    np.sum(dataset.data.real**2.0 / dataset.noise_map.real**2.0),
+    np.sum(dataset.data.imag**2.0 / dataset.noise_map.imag**2.0),
+)
 
 """
 __JAX Function 7__

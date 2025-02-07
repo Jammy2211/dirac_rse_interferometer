@@ -1,4 +1,0 @@
-
-
-def delaunay_from():
-
