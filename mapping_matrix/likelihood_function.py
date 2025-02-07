@@ -6,6 +6,12 @@ from autoarray import numba_util
 import autolens as al
 
 """
+__Pytorch Delaunay__
+
+I dont know if this will help, but PyTorch has a Delaunay triangulation function:
+
+https://pytorch-geometric.readthedocs.io/en/latest/_modules/torch_geometric/transforms/delaunay.html
+
 __Mask__
 
 We define the ‘real_space_mask’ which defines the grid the image the strong lens is evaluated using.
@@ -282,8 +288,8 @@ def pixel_weights_delaunay_from(
 weights = pixel_weights_delaunay_from(
     source_plane_data_grid=np.array(source_plane_data_grid.over_sampled),
     source_plane_mesh_grid=np.array(mapper.source_plane_mesh_grid),
-    slim_index_for_sub_slim_index=mapper.slim_index_for_sub_slim_index,
-    pix_indexes_for_sub_slim_index=mappings,
+    slim_index_for_sub_slim_index=mapper.slim_index_for_sub_slim_index.astype("int"),
+    pix_indexes_for_sub_slim_index=mappings.astype("int"),
 )
 
 """
