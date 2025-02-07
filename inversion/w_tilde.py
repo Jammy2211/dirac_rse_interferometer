@@ -757,8 +757,6 @@ def curvature_matrix_via_w_tilde_curvature_preload_interferometer_from(
         The curvature matrix `F` (see Warren & Dye 2003).
     """
 
-    preload = curvature_preload[0, 0]
-
     curvature_matrix = np.zeros((pix_pixels, pix_pixels))
 
     image_pixels = len(native_index_for_slim_index)
@@ -771,13 +769,11 @@ def curvature_matrix_via_w_tilde_curvature_preload_interferometer_from(
 
             ip0_weight = pix_weights_for_sub_slim_index[ip0, ip0_pix]
 
-            for ip1 in range(ip0 + 1, image_pixels):
+            for ip1 in range(image_pixels):
                 ip1_y, ip1_x = native_index_for_slim_index[ip1]
 
                 for ip1_pix in range(pix_size_for_sub_slim_index[ip1]):
                     sp1 = pix_indexes_for_sub_slim_index[ip1, ip1_pix]
-
-                    ip1_weight = pix_weights_for_sub_slim_index[ip1, ip1_pix]
 
                     # This is where the magic happens.
 
@@ -788,37 +784,14 @@ def curvature_matrix_via_w_tilde_curvature_preload_interferometer_from(
                     # which by definition is the unique value of the w_tilde matrix for pixels that are offset by
                     # 0 in the y direction and 1 in the x direction in pixel units.
 
+                    ip1_weight = pix_weights_for_sub_slim_index[ip1, ip1_pix]
+
                     y_diff = ip1_y - ip0_y
                     x_diff = ip1_x - ip0_x
 
                     curvature_matrix[sp0, sp1] += (
                         curvature_preload[y_diff, x_diff] * ip0_weight * ip1_weight
                     )
-
-    curvature_matrix_new = np.zeros((pix_pixels, pix_pixels))
-
-    for i in range(pix_pixels):
-        for j in range(pix_pixels):
-            curvature_matrix_new[i, j] = curvature_matrix[i, j] + curvature_matrix[j, i]
-
-    curvature_matrix = curvature_matrix_new
-
-    for ip0 in range(image_pixels):
-        for ip0_pix in range(pix_size_for_sub_slim_index[ip0]):
-            for ip1_pix in range(pix_size_for_sub_slim_index[ip0]):
-                sp0 = pix_indexes_for_sub_slim_index[ip0, ip0_pix]
-                sp1 = pix_indexes_for_sub_slim_index[ip0, ip1_pix]
-
-                ip0_weight = pix_weights_for_sub_slim_index[ip0, ip0_pix]
-                ip1_weight = pix_weights_for_sub_slim_index[ip0, ip1_pix]
-
-                if sp0 > sp1:
-                    curvature_matrix[sp0, sp1] += preload * ip0_weight * ip1_weight
-
-                    curvature_matrix[sp1, sp0] += preload * ip0_weight * ip1_weight
-
-                elif sp0 == sp1:
-                    curvature_matrix[sp0, sp1] += preload * ip0_weight * ip1_weight
 
     return curvature_matrix
 
