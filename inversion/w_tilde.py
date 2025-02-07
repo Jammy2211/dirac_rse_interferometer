@@ -420,6 +420,11 @@ shape of the real-space mask. This is so that negative offsets can be stored in 
 
 The function also has four inner four loops, which store the values of the `w_tilde` matrix for each unique (y,x) offset
 between pairs of pixels in the real-space mask.
+
+__IMPORTANT NOTE__
+
+This function actually is calculated before modeling, AND THEREFORE DOES NOT NECESSARILY NEED TO BE CONVERTED TO 
+JAX. This is because it is a pre-computation that is performed once and then used in the model-fit.
 """
 from typing import Tuple
 
@@ -695,6 +700,11 @@ w_matrix = w_tilde_via_preload_from(
 """
 The following function is how we compute `curvature_matrix` using the `w_tilde` matrix computed using the preload
 method.
+
+__IMPORTANT NOTE__
+
+THIS IS THE ONLY FUNCTION THAT NEEDS TO BE CONVERTED TO JAX, as it is the only function that is used in the model-fit
+calculation. 
 """
 
 
