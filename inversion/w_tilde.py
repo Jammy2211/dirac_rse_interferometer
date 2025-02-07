@@ -779,6 +779,15 @@ def curvature_matrix_via_w_tilde_curvature_preload_interferometer_from(
 
                     ip1_weight = pix_weights_for_sub_slim_index[ip1, ip1_pix]
 
+                    # This is where the magic happens.
+
+                    # Basically, `curvature_preload` stores the unique values of the w_tilde matrix in a structure
+                    # where each combination of index differences are the dimensions of the arrays.
+
+                    # So, if y_diff=0 and x_diff=1, it goes to the 0,1 index of the `curvature_preload` array,
+                    # which by definition is the unique value of the w_tilde matrix for pixels that are offset by
+                    # 0 in the y direction and 1 in the x direction in pixel units.
+
                     y_diff = ip1_y - ip0_y
                     x_diff = ip1_x - ip0_x
 
